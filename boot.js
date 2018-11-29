@@ -8,32 +8,6 @@ const readline = require('readline');
 const multer = require("multer");
 const bodyParser = require('body-parser');
 
-// PSQL command line
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: false,
-});
-            
-function devCli(dbConfig) {
-    rl.question("> ", (command) => {
-        console.log("got a command");
-        switch (command) {
-        case "psql":
-            dbConfig.psqlSpawn(devCli);
-            break;
-        case "help":
-            console.log("this is a simple cli allowing launching of psql");
-            devCli();
-            break;
-        default:
-            console.log("type help");
-            devCli();
-            break;
-        }
-    });
-}
-
 // Config
 const options = {
     webApp: true,
@@ -44,7 +18,7 @@ const dbConfig = {};
 
 // Listen for the dbUp event to receive the connection pool
 pgBoot.events.on("dbUp", async dbDetails => {
-    let { pgPool, psql } = dbDetails;
+    let { pgPool, psql, pgProcess } = dbDetails;
 
     // when we get the pool make a query method available
     dbConfig.query = async function (sql, parameters) {
@@ -60,10 +34,13 @@ pgBoot.events.on("dbUp", async dbDetails => {
         }
         finally {
             client.release();
+            console.log("client released");
         }
     };
 
     dbConfig.psqlSpawn = psql;
+    dbConfig.pgProcess = pgProcess;
+    dbConfig.pgPool = pgPool;
 });
 
 
@@ -80,7 +57,7 @@ pgBoot.events.on("dbPostInit", () => {
 
 // Main
 exports.main = function (listenPort) {
-    pgBoot.boot(listenPort, {
+    return pgBoot.boot(listenPort, {
         dbDir: path.join(__dirname, "dbfiles"),
         sqlScriptsDir: path.join(__dirname, "sql-scripts"),
         pgPoolConfig: {

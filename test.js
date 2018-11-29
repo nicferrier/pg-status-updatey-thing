@@ -1,16 +1,46 @@
 const boot = require("./boot.js");
+const http = require("http");
 
 async function test() {
     const [listener, dbConfig] = await new Promise((resolve, reject) => {
         boot.events.on("up", resolve);
         boot.main();
     });
-    console.log("port", listener.address().port);
+
+    const port = listener.address().port;
+
     const results = await dbConfig.query("select * from log;");
-    console.log(results);
+    console.log("rows before>", results.rows);
+
+    const result = await new Promise((resolve, reject) => {
+        let buffer = "";
+        const h = http.request({
+            method: "POST",
+            host: "localhost",
+            port: port,
+            path: "/ric/timeline",
+            headers: {
+                "content-type": "application-json"
+            }
+        }, response => {
+            response.on("end", data => { resolve(data); });
+            response.pipe(process.stdout);
+        });
+        h.write("[0,1,2,3]");
+        h.end();
+    });
+
+    console.log("result>", result);
+    listener.close();
+    await dbConfig.pgPool.end();
+    const exitCode = await new Promise((resolve, reject) => {
+        dbConfig.pgProcess.on("exit", resolve);
+        dbConfig.pgProcess.kill(process.SIGTERM);
+    });
+    return exitCode;
 }
 
-test().then();
+test().then(exitCode => console.log("postgres done, exit:", exitCode));
 
 // End
 
