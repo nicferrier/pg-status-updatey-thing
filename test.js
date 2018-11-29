@@ -20,14 +20,14 @@ async function test() {
             port: port,
             path: "/ric/timeline",
             headers: {
-                "content-type": "application-json"
+                "content-type": "application/json"
             }
         }, response => {
             response.on("end", data => { resolve(data); });
             response.pipe(process.stdout);
         });
-        h.write("[0,1,2,3]");
-        h.end();
+        // h.write();
+        h.end("[0,1,2,3]");
     });
 
     console.log("result>", result);

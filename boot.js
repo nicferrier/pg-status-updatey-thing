@@ -71,7 +71,7 @@ exports.main = function (listenPort) {
         },
 
         appCallback: function (app) {
-            app.use(bodyParser.json());
+            // app.use(bodyParser.json());
 
             app.set('json spaces', 4);
 
@@ -108,7 +108,7 @@ exports.main = function (listenPort) {
                 });
             });
 
-            app.post("/ric/timeline", function (req, res) {
+            app.post("/ric/timeline", bodyParser.json(), function (req, res) {
                 console.log("json?", req.body);
                 res.sendStatus(204);
             });
