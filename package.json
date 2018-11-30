@@ -11,9 +11,12 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.3",
+    "eventsource": "^1.0.7",
+    "express": "^4.16.4",
     "keepie": "file:../keepie",
     "multer": "^1.4.1",
     "psql-web-app": "file:../psqlapp",
-    "simple-auth-4-express": "file:../simple-express-auth"
+    "simple-auth-4-express": "file:../simple-express-auth",
+    "sse-node": "^1.0.2"
   }
 }
